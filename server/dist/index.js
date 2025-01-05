@@ -1,6 +1,4 @@
 "use strict";
-// require("dotenv").config();
-// import Anthropic from "@anthropic-ai/sdk";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -21,99 +19,167 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// const anthropic = new Anthropic({
-//   // defaults to process.env["ANTHROPIC_API_KEY"]
-//   apiKey: process.env.ANTHROPIC_API_KEY,
-// });
-// async function main() {
-//   const msg = await anthropic.messages.create({
-//     model: "claude-3-5-sonnet-20241022",
-//     max_tokens: 1000,
-//     temperature: 0,
-//     messages: [
-//       {
-//         role: "user",
-//         content: "what is 2+2",
-//       },
-//     ],
-//   });
-//   console.log(msg);
-// }
-// main();
-// require("dotenv").config();
-// import OpenAI from "openai";
-//  const openai = new OpenAI();
-// async function main() {
-//     const completion = await openai.chat.completions.create({
-//         model: "gpt-4o-mini",
-//         messages: [
-//             { role: "system", content: "You are a helpful assistant." },
-//             {
-//                 role: "user",
-//                 content: "write a code for to do application",
-//             },
-//         ],
-//     });
-//     console.log(completion.choices[0].message);
-// }
-// main();
 require("dotenv").config();
+const express_1 = __importDefault(require("express"));
 const openai_1 = __importDefault(require("openai"));
-const prompts_1 = require("./prompts"); // Import the dynamic system prompt
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a, e_1, _b, _c;
-        var _d, _e;
-        try {
-            // Get the system prompt dynamically
-            const systemPrompt = (0, prompts_1.getSystemPrompt)();
-            const openai = new openai_1.default();
-            const stream = yield openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: [
-                    {
-                        role: "system",
-                        content: systemPrompt, // Use the dynamic system prompt here
-                    },
-                    {
-                        role: "user",
-                        content: '# Project Files\n\nThe following is a list of all project files and their complete contents that are currently visible and accessible to you.\n\neslint.config.js:\n```\nimport js from \'@eslint/js\';\nimport globals from \'globals\';\nimport reactHooks from \'eslint-plugin-react-hooks\';\nimport reactRefresh from \'eslint-plugin-react-refresh\';\nimport tseslint from \'typescript-eslint\';\n\nexport default tseslint.config(\n  { ignores: [\'dist\'] },\n  {\n    extends: [js.configs.recommended, ...tseslint.configs.recommended],\n    files: [\'**/*.{ts,tsx}\'],\n    languageOptions: {\n      ecmaVersion: 2020,\n      globals: globals.browser,\n    },\n    plugins: {\n      \'react-hooks\': reactHooks,\n      \'react-refresh\': reactRefresh,\n    },\n    rules: {\n      ...reactHooks.configs.recommended.rules,\n      \'react-refresh/only-export-components\': [\n        \'warn\',\n        { allowConstantExport: true },\n      ],\n    },\n  }\n);\n\n```\n\nindex.html:\n```\n<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <link rel="icon" type="image/svg+xml" href="/vite.svg" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>Vite + React + TS</title>\n  </head>\n  <body>\n    <div id="root"></div>\n    <script type="module" src="/src/main.tsx"></script>\n  </body>\n</html>\n\n```\n\npackage.json:\n```\n{\n  "name": "vite-react-typescript-starter",\n  "private": true,\n  "version": "0.0.0",\n  "type": "module",\n  "scripts": {\n    "dev": "vite",\n    "build": "vite build",\n    "lint": "eslint .",\n    "preview": "vite preview"\n  },\n  "dependencies": {\n    "lucide-react": "^0.344.0",\n    "react": "^18.3.1",\n    "react-dom": "^18.3.1"\n  },\n  "devDependencies": {\n    "@eslint/js": "^9.9.1",\n    "@types/react": "^18.3.5",\n    "@types/react-dom": "^18.3.0",\n    "@vitejs/plugin-react": "^4.3.1",\n    "autoprefixer": "^10.4.18",\n    "eslint": "^9.9.1",\n    "eslint-plugin-react-hooks": "^5.1.0-rc.0",\n    "eslint-plugin-react-refresh": "^0.4.11",\n    "globals": "^15.9.0",\n    "postcss": "^8.4.35",\n    "tailwindcss": "^3.4.1",\n    "typescript": "^5.5.3",\n    "typescript-eslint": "^8.3.0",\n    "vite": "^5.4.2"\n  }\n}\n\n```\n\npostcss.config.js:\n```\nexport default {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n\n```\n\nsrc/App.tsx:\n```\nimport React, { useState } from \'react\';\nimport { CheckCircle2 } from \'lucide-react\';\nimport { TodoItem } from \'./components/TodoItem\';\nimport { TodoInput } from \'./components/TodoInput\';\nimport { Todo } from \'./types/todo\';\n\nfunction App() {\n  const [todos, setTodos] = useState<Todo[]>([]);\n\n  const addTodo = (text: string) => {\n    const newTodo: Todo = {\n      id: crypto.randomUUID(),\n      text,\n      completed: false,\n      createdAt: new Date(),\n    };\n    setTodos([newTodo, ...todos]);\n  };\n\n  const toggleTodo = (id: string) => {\n    setTodos(\n      todos.map((todo) =>\n        todo.id === id ? { ...todo, completed: !todo.completed } : todo\n      )\n    );\n  };\n\n  const deleteTodo = (id: string) => {\n    setTodos(todos.filter((todo) => todo.id !== id));\n  };\n\n  const completedCount = todos.filter((todo) => todo.completed).length;\n\n  return (\n    <div className="min-h-screen bg-gray-50">\n      <div className="max-w-2xl mx-auto py-12 px-4">\n        <div className="text-center mb-8">\n          <h1 className="text-4xl font-bold text-gray-900 mb-2">Todo List</h1>\n          <p className="text-gray-600">\n            Stay organized and get things done\n          </p>\n        </div>\n\n        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">\n          <TodoInput onAdd={addTodo} />\n        </div>\n\n        {todos.length > 0 && (\n          <div className="bg-blue-50 rounded-lg p-4 mb-6 flex items-center justify-between">\n            <div className="flex items-center gap-2">\n              <CheckCircle2 className="text-blue-500" />\n              <span className="text-blue-700">\n                {completedCount} of {todos.length} tasks completed\n              </span>\n            </div>\n            <span className="text-blue-600 text-sm">\n              {((completedCount / todos.length) * 100).toFixed(0)}% done\n            </span>\n          </div>\n        )}\n\n        <div className="space-y-3">\n          {todos.length === 0 ? (\n            <div className="text-center py-12 text-gray-500">\n              No todos yet. Add one above to get started!\n            </div>\n          ) : (\n            todos.map((todo) => (\n              <TodoItem\n                key={todo.id}\n                todo={todo}\n                onToggle={toggleTodo}\n                onDelete={deleteTodo}\n              />\n            ))\n          )}\n        </div>\n      </div>\n    </div>\n  );\n}\n\nexport default App;\n```\n\nsrc/components/TodoInput.tsx:\n```\nimport React, { useState } from \'react\';\nimport { PlusCircle } from \'lucide-react\';\n\ninterface TodoInputProps {\n  onAdd: (text: string) => void;\n}\n\nexport function TodoInput({ onAdd }: TodoInputProps) {\n  const [text, setText] = useState(\'\');\n\n  const handleSubmit = (e: React.FormEvent) => {\n    e.preventDefault();\n    if (text.trim()) {\n      onAdd(text.trim());\n      setText(\'\');\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit} className="flex gap-2">\n      <input\n        type="text"\n        value={text}\n        onChange={(e) => setText(e.target.value)}\n        placeholder="Add a new todo..."\n        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"\n      />\n      <button\n        type="submit"\n        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center gap-2"\n      >\n        <PlusCircle size={20} />\n        Add\n      </button>\n    </form>\n  );\n}\n```\n\nsrc/components/TodoItem.tsx:\n```\nimport React from \'react\';\nimport { Check, Trash2, Square } from \'lucide-react\';\nimport { Todo } from \'../types/todo\';\n\ninterface TodoItemProps {\n  todo: Todo;\n  onToggle: (id: string) => void;\n  onDelete: (id: string) => void;\n}\n\nexport function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {\n  return (\n    <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">\n      <div className="flex items-center space-x-3">\n        <button\n          onClick={() => onToggle(todo.id)}\n          className={`p-1 rounded-md transition-colors ${\n            todo.completed ? \'text-green-500 hover:text-green-600\' : \'text-gray-400 hover:text-gray-500\'\n          }`}\n        >\n          {todo.completed ? <Check size={20} /> : <Square size={20} />}\n        </button>\n        <span\n          className={`text-gray-800 ${\n            todo.completed ? \'line-through text-gray-400\' : \'\'\n          }`}\n        >\n          {todo.text}\n        </span>\n      </div>\n      <button\n        onClick={() => onDelete(todo.id)}\n        className="p-1 text-red-400 hover:text-red-500 transition-colors"\n      >\n        <Trash2 size={20} />\n      </button>\n    </div>\n  );\n}\n```\n\nsrc/index.css:\n```\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n```\n\nsrc/main.tsx:\n```\nimport { StrictMode } from \'react\';\nimport { createRoot } from \'react-dom/client\';\nimport App from \'./App.tsx\';\nimport \'./index.css\';\n\ncreateRoot(document.getElementById(\'root\')!).render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);\n\n```\n\nsrc/types/todo.ts:\n```\nexport interface Todo {\n  id: string;\n  text: string;\n  completed: boolean;\n  createdAt: Date;\n}\n```\n\nsrc/vite-env.d.ts:\n```\n/// <reference types="vite/client" />\n\n```\n\ntailwind.config.js:\n```\n/** @type {import(\'tailwindcss\').Config} */\nexport default {\n  content: [\'./index.html\', \'./src/**/*.{js,ts,jsx,tsx}\'],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n};\n\n```\n\ntsconfig.app.json:\n```\n{\n  "compilerOptions": {\n    "target": "ES2020",\n    "useDefineForClassFields": true,\n    "lib": ["ES2020", "DOM", "DOM.Iterable"],\n    "module": "ESNext",\n    "skipLibCheck": true,\n\n    /* Bundler mode */\n    "moduleResolution": "bundler",\n    "allowImportingTsExtensions": true,\n    "isolatedModules": true,\n    "moduleDetection": "force",\n    "noEmit": true,\n    "jsx": "react-jsx",\n\n    /* Linting */\n    "strict": true,\n    "noUnusedLocals": true,\n    "noUnusedParameters": true,\n    "noFallthroughCasesInSwitch": true\n  },\n  "include": ["src"]\n}\n\n```\n\ntsconfig.json:\n```\n{\n  "files": [],\n  "references": [\n    { "path": "./tsconfig.app.json" },\n    { "path": "./tsconfig.node.json" }\n  ]\n}\n\n```\n\ntsconfig.node.json:\n```\n{\n  "compilerOptions": {\n    "target": "ES2022",\n    "lib": ["ES2023"],\n    "module": "ESNext",\n    "skipLibCheck": true,\n\n    /* Bundler mode */\n    "moduleResolution": "bundler",\n    "allowImportingTsExtensions": true,\n    "isolatedModules": true,\n    "moduleDetection": "force",\n    "noEmit": true,\n\n    /* Linting */\n    "strict": true,\n    "noUnusedLocals": true,\n    "noUnusedParameters": true,\n    "noFallthroughCasesInSwitch": true\n  },\n  "include": ["vite.config.ts"]\n}\n\n```\n\nvite.config.ts:\n```\nimport { defineConfig } from \'vite\';\nimport react from \'@vitejs/plugin-react\';\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [react()],\n  optimizeDeps: {\n    exclude: [\'lucide-react\'],\n  },\n});\n\n```\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - .bolt/prompt\n  - .bolt/config.json\n  - package-lock.json',
-                    },
-                    {
-                        role: "user",
-                        content: "For all designs I ask you to make,have them be beautiful, not cookie cutter. Make webpages thatare fully featured and worthy for production.\n\nBy default,this template supports JSX syntax with Tailwind CSS classes,React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them. \n\nUse icons from lucide-react for logos.\n\nUse stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.\n\n",
-                    },
-                    {
-                        role: "user",
-                        content: '# Project Files\n\nThe following is a list of all project files and their complete contents that are currently visible and accessible to you.\n\neslint.config.js:\n```\nimport js from \'@eslint/js\';\nimport globals from \'globals\';\nimport reactHooks from \'eslint-plugin-react-hooks\';\nimport reactRefresh from \'eslint-plugin-react-refresh\';\nimport tseslint from \'typescript-eslint\';\n\nexport default tseslint.config(\n  { ignores: [\'dist\'] },\n  {\n    extends: [js.configs.recommended, ...tseslint.configs.recommended],\n    files: [\'**/*.{ts,tsx}\'],\n    languageOptions: {\n      ecmaVersion: 2020,\n      globals: globals.browser,\n    },\n    plugins: {\n      \'react-hooks\': reactHooks,\n      \'react-refresh\': reactRefresh,\n    },\n    rules: {\n      ...reactHooks.configs.recommended.rules,\n      \'react-refresh/only-export-components\': [\n        \'warn\',\n        { allowConstantExport: true },\n      ],\n    },\n  }\n);\n\n```\n\nindex.html:\n```\n<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <link rel="icon" type="image/svg+xml" href="/vite.svg" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>Vite + React + TS</title>\n  </head>\n  <body>\n    <div id="root"></div>\n    <script type="module" src="/src/main.tsx"></script>\n  </body>\n</html>\n\n```\n\npackage.json:\n```\n{\n  "name": "vite-react-typescript-starter",\n  "private": true,\n  "version": "0.0.0",\n  "type": "module",\n  "scripts": {\n    "dev": "vite",\n    "build": "vite build",\n    "lint": "eslint .",\n    "preview": "vite preview"\n  },\n  "dependencies": {\n    "lucide-react": "^0.344.0",\n    "react": "^18.3.1",\n    "react-dom": "^18.3.1"\n  },\n  "devDependencies": {\n    "@eslint/js": "^9.9.1",\n    "@types/react": "^18.3.5",\n    "@types/react-dom": "^18.3.0",\n    "@vitejs/plugin-react": "^4.3.1",\n    "autoprefixer": "^10.4.18",\n    "eslint": "^9.9.1",\n    "eslint-plugin-react-hooks": "^5.1.0-rc.0",\n    "eslint-plugin-react-refresh": "^0.4.11",\n    "globals": "^15.9.0",\n    "postcss": "^8.4.35",\n    "tailwindcss": "^3.4.1",\n    "typescript": "^5.5.3",\n    "typescript-eslint": "^8.3.0",\n    "vite": "^5.4.2"\n  }\n}\n\n```\n\npostcss.config.js:\n```\nexport default {\n  plugins: {\n    tailwindcss: {},\n    autoprefixer: {},\n  },\n};\n\n```\n\nsrc/App.tsx:\n```\nimport React, { useState } from \'react\';\nimport { CheckCircle2 } from \'lucide-react\';\nimport { TodoItem } from \'./components/TodoItem\';\nimport { TodoInput } from \'./components/TodoInput\';\nimport { Todo } from \'./types/todo\';\n\nfunction App() {\n  const [todos, setTodos] = useState<Todo[]>([]);\n\n  const addTodo = (text: string) => {\n    const newTodo: Todo = {\n      id: crypto.randomUUID(),\n      text,\n      completed: false,\n      createdAt: new Date(),\n    };\n    setTodos([newTodo, ...todos]);\n  };\n\n  const toggleTodo = (id: string) => {\n    setTodos(\n      todos.map((todo) =>\n        todo.id === id ? { ...todo, completed: !todo.completed } : todo\n      )\n    );\n  };\n\n  const deleteTodo = (id: string) => {\n    setTodos(todos.filter((todo) => todo.id !== id));\n  };\n\n  const completedCount = todos.filter((todo) => todo.completed).length;\n\n  return (\n    <div className="min-h-screen bg-gray-50">\n      <div className="max-w-2xl mx-auto py-12 px-4">\n        <div className="text-center mb-8">\n          <h1 className="text-4xl font-bold text-gray-900 mb-2">Todo List</h1>\n          <p className="text-gray-600">\n            Stay organized and get things done\n          </p>\n        </div>\n\n        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">\n          <TodoInput onAdd={addTodo} />\n        </div>\n\n        {todos.length > 0 && (\n          <div className="bg-blue-50 rounded-lg p-4 mb-6 flex items-center justify-between">\n            <div className="flex items-center gap-2">\n              <CheckCircle2 className="text-blue-500" />\n              <span className="text-blue-700">\n                {completedCount} of {todos.length} tasks completed\n              </span>\n            </div>\n            <span className="text-blue-600 text-sm">\n              {((completedCount / todos.length) * 100).toFixed(0)}% done\n            </span>\n          </div>\n        )}\n\n        <div className="space-y-3">\n          {todos.length === 0 ? (\n            <div className="text-center py-12 text-gray-500">\n              No todos yet. Add one above to get started!\n            </div>\n          ) : (\n            todos.map((todo) => (\n              <TodoItem\n                key={todo.id}\n                todo={todo}\n                onToggle={toggleTodo}\n                onDelete={deleteTodo}\n              />\n            ))\n          )}\n        </div>\n      </div>\n    </div>\n  );\n}\n\nexport default App;\n```\n\nsrc/components/TodoInput.tsx:\n```\nimport React, { useState } from \'react\';\nimport { PlusCircle } from \'lucide-react\';\n\ninterface TodoInputProps {\n  onAdd: (text: string) => void;\n}\n\nexport function TodoInput({ onAdd }: TodoInputProps) {\n  const [text, setText] = useState(\'\');\n\n  const handleSubmit = (e: React.FormEvent) => {\n    e.preventDefault();\n    if (text.trim()) {\n      onAdd(text.trim());\n      setText(\'\');\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit} className="flex gap-2">\n      <input\n        type="text"\n        value={text}\n        onChange={(e) => setText(e.target.value)}\n        placeholder="Add a new todo..."\n        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"\n      />\n      <button\n        type="submit"\n        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center gap-2"\n      >\n        <PlusCircle size={20} />\n        Add\n      </button>\n    </form>\n  );\n}\n```\n\nsrc/components/TodoItem.tsx:\n```\nimport React from \'react\';\nimport { Check, Trash2, Square } from \'lucide-react\';\nimport { Todo } from \'../types/todo\';\n\ninterface TodoItemProps {\n  todo: Todo;\n  onToggle: (id: string) => void;\n  onDelete: (id: string) => void;\n}\n\nexport function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {\n  return (\n    <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">\n      <div className="flex items-center space-x-3">\n        <button\n          onClick={() => onToggle(todo.id)}\n          className={`p-1 rounded-md transition-colors ${\n            todo.completed ? \'text-green-500 hover:text-green-600\' : \'text-gray-400 hover:text-gray-500\'\n          }`}\n        >\n          {todo.completed ? <Check size={20} /> : <Square size={20} />}\n        </button>\n        <span\n          className={`text-gray-800 ${\n            todo.completed ? \'line-through text-gray-400\' : \'\'\n          }`}\n        >\n          {todo.text}\n        </span>\n      </div>\n      <button\n        onClick={() => onDelete(todo.id)}\n        className="p-1 text-red-400 hover:text-red-500 transition-colors"\n      >\n        <Trash2 size={20} />\n      </button>\n    </div>\n  );\n}\n```\n\nsrc/index.css:\n```\n@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n```\n\nsrc/main.tsx:\n```\nimport { StrictMode } from \'react\';\nimport { createRoot } from \'react-dom/client\';\nimport App from \'./App.tsx\';\nimport \'./index.css\';\n\ncreateRoot(document.getElementById(\'root\')!).render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);\n\n```\n\nsrc/types/todo.ts:\n```\nexport interface Todo {\n  id: string;\n  text: string;\n  completed: boolean;\n  createdAt: Date;\n}\n```\n\nsrc/vite-env.d.ts:\n```\n/// <reference types="vite/client" />\n\n```\n\ntailwind.config.js:\n```\n/** @type {import(\'tailwindcss\').Config} */\nexport default {\n  content: [\'./index.html\', \'./src/**/*.{js,ts,jsx,tsx}\'],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n};\n\n```\n\ntsconfig.app.json:\n```\n{\n  "compilerOptions": {\n    "target": "ES2020",\n    "useDefineForClassFields": true,\n    "lib": ["ES2020", "DOM", "DOM.Iterable"],\n    "module": "ESNext",\n    "skipLibCheck": true,\n\n    /* Bundler mode */\n    "moduleResolution": "bundler",\n    "allowImportingTsExtensions": true,\n    "isolatedModules": true,\n    "moduleDetection": "force",\n    "noEmit": true,\n    "jsx": "react-jsx",\n\n    /* Linting */\n    "strict": true,\n    "noUnusedLocals": true,\n    "noUnusedParameters": true,\n    "noFallthroughCasesInSwitch": true\n  },\n  "include": ["src"]\n}\n\n```\n\ntsconfig.json:\n```\n{\n  "files": [],\n  "references": [\n    { "path": "./tsconfig.app.json" },\n    { "path": "./tsconfig.node.json" }\n  ]\n}\n\n```\n\ntsconfig.node.json:\n```\n{\n  "compilerOptions": {\n    "target": "ES2022",\n    "lib": ["ES2023"],\n    "module": "ESNext",\n    "skipLibCheck": true,\n\n    /* Bundler mode */\n    "moduleResolution": "bundler",\n    "allowImportingTsExtensions": true,\n    "isolatedModules": true,\n    "moduleDetection": "force",\n    "noEmit": true,\n\n    /* Linting */\n    "strict": true,\n    "noUnusedLocals": true,\n    "noUnusedParameters": true,\n    "noFallthroughCasesInSwitch": true\n  },\n  "include": ["vite.config.ts"]\n}\n\n```\n\nvite.config.ts:\n```\nimport { defineConfig } from \'vite\';\nimport react from \'@vitejs/plugin-react\';\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [react()],\n  optimizeDeps: {\n    exclude: [\'lucide-react\'],\n  },\n});\n\n```\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - .bolt/prompt\n  - .bolt/config.json\n  - package-lock.json',
-                    },
-                    {
-                        role: "user",
-                        content: "create a tic tak toi game",
-                    },
-                ],
-                stream: true,
-            });
-            try {
-                // Stream the response to the console
-                for (var _f = true, stream_1 = __asyncValues(stream), stream_1_1; stream_1_1 = yield stream_1.next(), _a = stream_1_1.done, !_a; _f = true) {
-                    _c = stream_1_1.value;
-                    _f = false;
-                    const chunk = _c;
-                    process.stdout.write(((_e = (_d = chunk.choices[0]) === null || _d === void 0 ? void 0 : _d.delta) === null || _e === void 0 ? void 0 : _e.content) || "");
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (!_f && !_a && (_b = stream_1.return)) yield _b.call(stream_1);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-        }
-        catch (error) {
-            console.error("Error:", error.message);
-        }
+const node_1 = require("./defaults/node");
+const react_1 = require("./defaults/react");
+const prompts_1 = require("./prompts");
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.post("/template", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, e_1, _b, _c;
+    var _d, _e, _f;
+    const prompt = req.body.prompt;
+    // const systemPrompt: string = getSystemPrompt();
+    const openai = new openai_1.default();
+    const response = yield openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+            {
+                role: "system",
+                content: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra", // Use the dynamic system prompt here
+            },
+            {
+                role: "user",
+                content: prompt,
+                // content: " give me the code of to do list",
+            },
+        ],
+        stream: true,
     });
-}
-main();
+    let result = "";
+    try {
+        for (var _g = true, response_1 = __asyncValues(response), response_1_1; response_1_1 = yield response_1.next(), _a = response_1_1.done, !_a; _g = true) {
+            _c = response_1_1.value;
+            _g = false;
+            const chunk = _c;
+            const content = ((_e = (_d = chunk.choices[0]) === null || _d === void 0 ? void 0 : _d.delta) === null || _e === void 0 ? void 0 : _e.content) || "";
+            result += content;
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (!_g && !_a && (_b = response_1.return)) yield _b.call(response_1);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    // console.log(result);
+    // Respond with the final accumulated result
+    // res.json({ data: result });
+    // for await (const chunk of response) {
+    //   process.stdout.write(chunk.choices[0]?.delta?.content || ""); // Stream the response to the console
+    // }
+    // const answer = result;
+    // const answer = result.trim().toLowerCase();
+    // if (answer == "react") {
+    //   res.json({ prompts: [BASE_PROMPT, reactBasePrompt] });
+    //   return;
+    // }
+    // if (answer == "node") {
+    //   res.json({ prompts: [nodeBasePrompt] });
+    //   return;
+    // } else {
+    //   res.status(403).json({ message: "you cant access this" });
+    //   return;
+    // }
+    const answer = (_f = result === null || result === void 0 ? void 0 : result.trim()) === null || _f === void 0 ? void 0 : _f.toLowerCase();
+    if (answer === "react") {
+        res.json({ prompts: [prompts_1.BASE_PROMPT, react_1.basePrompt] });
+        return;
+    }
+    if (answer === "node") {
+        res.json({ prompts: [node_1.basePrompt] });
+        return;
+    }
+    // Default case if no condition matches
+    res.status(403).json({ message: "You can't access this" });
+    return;
+}));
+//   try {
+//     const prompt = req.body.prompt;
+//     if (!prompt) {
+//       return res.status(400).json({ error: "Prompt is required" });
+//     }
+//     const openai = new OpenAI({
+//       apiKey: process.env.OPENAI_API_KEY || "", // Ensure API key is provided
+//     });
+//     // Construct the OpenAI chat prompt
+//     const response = await openai.chat.completions.create({
+//       model: "gpt-4",
+//       messages: [
+//         {
+//           role: "system",
+//           content:
+//             "Return either 'node' or 'react' based on what you think this project should be. Only return a single word, either 'node' or 'react'. Do not return anything extra.",
+//         },
+//         {
+//           role: "user",
+//           content: prompt,
+//         },
+//       ],
+//       max_tokens: 50, // Limit the response to ensure brevity
+//     });
+//     // Extract the content from the response
+//     const answer = response.choices[0]?.message?.content?.trim().toLowerCase() || "";
+//     // Handle the response
+//     if (answer === "react") {
+//       res.json({
+//         prompts: [BASE_PROMPT, reactBasePrompt],
+//       });
+//       return;
+//     }
+//     if (answer === "node") {
+//       res.json({
+//         prompts: [nodeBasePrompt],
+//       });
+//       return;
+//     }
+//     res.status(403).json({ message: "You can't access this" });
+//   } catch (error: any) {
+//     console.error("Error:", error.message);
+//     res.status(500).json({ error: "An unexpected error occurred" });
+//   }
+// });
+app.listen(3000);
+// async function main() {
+//   try {
+//     // Get the system prompt dynamically
+//     const systemPrompt: string = getSystemPrompt();
+//     const openai = new OpenAI();
+//     const stream = await openai.chat.completions.create({
+//       model: "gpt-4o-mini",
+//       messages: [
+//         {
+//           role: "system",
+//           content: systemPrompt, // Use the dynamic system prompt here
+//         },
+//         {
+//           role: "user",
+//           content:
+//             "For all designs I ask you to make,have them be beautiful, not cookie cutter. Make webpages thatare fully featured and worthy for production.\n\nBy default,this template supports JSX syntax with Tailwind CSS classes,React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them. \n\nUse icons from lucide-react for logos.\n\nUse stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.\n\n",
+//         },
+//         {
+//           role: "user",
+//           content:
+//             "Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n",
+//         },
+//         {
+//           role: "user",
+//           content: "create a tic tak toi game",
+//         },
+//       ],
+//       stream: true,
+//     });
+//     // Stream the response to the console
+//     for await (const chunk of stream) {
+//       process.stdout.write(chunk.choices[0]?.delta?.content || "");
+//     }
+//   } catch (error) {
+//     console.error("Error:", (error as Error).message);
+//   }
+// }
+// main();
+// Get the system prompt dynamically
+// Stream the response to the console

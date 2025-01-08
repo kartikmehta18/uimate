@@ -22,9 +22,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const express_1 = __importDefault(require("express"));
 const openai_1 = __importDefault(require("openai"));
+const prompts_1 = require("./prompts");
 const node_1 = require("./defaults/node");
 const react_1 = require("./defaults/react");
-const prompts_1 = require("./prompts");
+const prompts_2 = require("./prompts");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.post("/template", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -86,11 +87,22 @@ app.post("/template", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     // }
     const answer = (_f = result === null || result === void 0 ? void 0 : result.trim()) === null || _f === void 0 ? void 0 : _f.toLowerCase();
     if (answer === "react") {
-        res.json({ prompts: [prompts_1.BASE_PROMPT, react_1.basePrompt] });
+        res.json({
+            prompts: [
+                prompts_2.BASE_PROMPT,
+                `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${react_1.basePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+            ],
+            uiPrompts: [react_1.basePrompt],
+        });
         return;
     }
     if (answer === "node") {
-        res.json({ prompts: [node_1.basePrompt] });
+        res.json({
+            prompts: [
+                `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${react_1.basePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+            ],
+            uiPrompts: [node_1.basePrompt],
+        });
         return;
     }
     // Default case if no condition matches
@@ -142,6 +154,123 @@ app.post("/template", (req, res) => __awaiter(void 0, void 0, void 0, function* 
 //     res.status(500).json({ error: "An unexpected error occurred" });
 //   }
 // });
+// app.post("/chat", async (req, res) => {
+//   const systemPrompt: string = getSystemPrompt();
+//   const openai = new OpenAI();
+//   const messages = req.body.messages;
+//   const response = await openai.chat.completions.create({
+//     model: "gpt-4o-mini",
+//     messages: [
+//       messages,
+//       {
+//         role: "system",
+//         content: systemPrompt,
+//       },
+//     ],
+//     stream: true,
+//   });
+//   let result = "";
+//   for await (const chunk of response) {
+//     const content = chunk.choices[0]?.delta?.content || "";
+//     result += content;
+//     // process.stdout.write(content);
+//     console.log(result)
+//   }
+// });
+// app.post("/chat", async (req, res) => {
+//   const systemPrompt = getSystemPrompt();
+//   const openai = new OpenAI();
+//   const messages = req.body.messages;
+//   if (
+//     !Array.isArray(messages) ||
+//     !messages.every((msg) => msg.role && msg.content)
+//   ) {
+//     res
+//       .status(400)
+//       .json({
+//         message:
+//           "Invalid messages format. Each message must have 'role' and 'content'.",
+//       });
+//     return;
+//   }
+//   messages.push({
+//     role: "system",
+//     content: systemPrompt,
+//   });
+//   // Call OpenAI API
+//   const response = await openai.chat.completions.create({
+//     model: "gpt-4o-mini",
+//     messages: messages,
+//     stream: true,
+//   });
+//   let result = "";
+//   for await (const chunk of response) {
+//     const content = chunk.choices[0]?.delta?.content || "";
+//     result += content;
+//     console.log(result); // Debugging output
+//   }
+//   res.json({ result });
+//   return;
+// });
+app.post("/chat", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, e_2, _b, _c;
+    var _d, _e;
+    try {
+        const systemPrompt = (0, prompts_1.getSystemPrompt)();
+        const openai = new openai_1.default({
+            apiKey: process.env.OPENAI_API_KEY || "", // Replace with your OpenAI API key
+        });
+        const messages = req.body.messages;
+        // Validate messages format
+        if (!Array.isArray(messages) ||
+            !messages.every((msg) => typeof msg.role === "string" && typeof msg.content === "string")) {
+            res.status(400).json({
+                message: "Invalid messages format. Each message must be an object with 'role' and 'content' as strings.",
+            });
+            return;
+        }
+        // Add the system prompt as the first message
+        messages.unshift({
+            role: "system",
+            content: systemPrompt,
+        });
+        // Call OpenAI API
+        const response = yield openai.chat.completions.create({
+            model: "gpt-4", // Specify your desired model
+            messages: messages,
+            stream: true,
+            // Set max tokens for the response
+        });
+        let result = "";
+        try {
+            // Handle streamed response
+            for (var _f = true, _g = __asyncValues(response), _h; _h = yield _g.next(), _a = _h.done, !_a; _f = true) {
+                _c = _h.value;
+                _f = false;
+                const chunk = _c;
+                const content = ((_e = (_d = chunk.choices[0]) === null || _d === void 0 ? void 0 : _d.delta) === null || _e === void 0 ? void 0 : _e.content) || "";
+                result += content;
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (!_f && !_a && (_b = _g.return)) yield _b.call(_g);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+        // Send the result back to the client
+        res.json({ result });
+    }
+    catch (error) {
+        console.error("Error:", error.message);
+        // Handle errors gracefully
+        res.status(500).json({
+            error: "An error occurred while processing your request.",
+            details: error.message,
+        });
+    }
+}));
 app.listen(3000);
 // async function main() {
 //   try {

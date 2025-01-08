@@ -61,12 +61,23 @@ app.post("/template", async (req, res) => {
   const answer = result?.trim()?.toLowerCase();
 
   if (answer === "react") {
-    res.json({ prompts: [BASE_PROMPT, reactBasePrompt], uiprompts: [] });
+    res.json({
+      prompts: [
+        BASE_PROMPT,
+        `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+      ],
+      uiPrompts: [reactBasePrompt],
+    });
     return;
   }
 
   if (answer === "node") {
-    res.json({ prompts: [nodeBasePrompt], uiprompts: [] });
+    res.json({
+      prompts: [
+        `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactBasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+      ],
+      uiPrompts: [nodeBasePrompt],
+    });
     return;
   }
 
@@ -127,6 +138,133 @@ app.post("/template", async (req, res) => {
 //     res.status(500).json({ error: "An unexpected error occurred" });
 //   }
 // });
+
+// app.post("/chat", async (req, res) => {
+//   const systemPrompt: string = getSystemPrompt();
+//   const openai = new OpenAI();
+//   const messages = req.body.messages;
+//   const response = await openai.chat.completions.create({
+//     model: "gpt-4o-mini",
+//     messages: [
+//       messages,
+//       {
+//         role: "system",
+//         content: systemPrompt,
+//       },
+//     ],
+//     stream: true,
+//   });
+
+//   let result = "";
+//   for await (const chunk of response) {
+//     const content = chunk.choices[0]?.delta?.content || "";
+//     result += content;
+//     // process.stdout.write(content);
+//     console.log(result)
+//   }
+
+// });
+
+// app.post("/chat", async (req, res) => {
+//   const systemPrompt = getSystemPrompt();
+//   const openai = new OpenAI();
+
+//   const messages = req.body.messages;
+
+//   if (
+//     !Array.isArray(messages) ||
+//     !messages.every((msg) => msg.role && msg.content)
+//   ) {
+//     res
+//       .status(400)
+//       .json({
+//         message:
+//           "Invalid messages format. Each message must have 'role' and 'content'.",
+//       });
+//     return;
+//   }
+
+//   messages.push({
+//     role: "system",
+//     content: systemPrompt,
+//   });
+
+//   // Call OpenAI API
+//   const response = await openai.chat.completions.create({
+//     model: "gpt-4o-mini",
+//     messages: messages,
+//     stream: true,
+//   });
+
+//   let result = "";
+
+//   for await (const chunk of response) {
+//     const content = chunk.choices[0]?.delta?.content || "";
+//     result += content;
+//     console.log(result); // Debugging output
+//   }
+
+//   res.json({ result });
+//   return;
+// });
+
+app.post("/chat", async (req, res) => {
+  try {
+    const systemPrompt = getSystemPrompt();
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || "", // Replace with your OpenAI API key
+    });
+
+    const messages = req.body.messages;
+
+    // Validate messages format
+    if (
+      !Array.isArray(messages) ||
+      !messages.every(
+        (msg) => typeof msg.role === "string" && typeof msg.content === "string"
+      )
+    ) {
+      res.status(400).json({
+        message:
+          "Invalid messages format. Each message must be an object with 'role' and 'content' as strings.",
+      });
+      return;
+    }
+
+    // Add the system prompt as the first message
+    messages.unshift({
+      role: "system",
+      content: systemPrompt,
+    });
+
+    // Call OpenAI API
+    const response = await openai.chat.completions.create({
+      model: "gpt-4", // Specify your desired model
+      messages: messages,
+      stream: true,
+      // Set max tokens for the response
+    });
+
+    let result = "";
+
+    // Handle streamed response
+    for await (const chunk of response as AsyncIterable<any>) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      result += content;
+    }
+
+    // Send the result back to the client
+    res.json({ result });
+  } catch (error: any) {
+    console.error("Error:", error.message);
+
+    // Handle errors gracefully
+    res.status(500).json({
+      error: "An error occurred while processing your request.",
+      details: error.message,
+    });
+  }
+});
 
 app.listen(3000);
 

@@ -1,13 +1,19 @@
 require("dotenv").config();
+import cors from 'cors';
 import express, { Request, Response } from "express";
 import OpenAI from "openai";
 import { getSystemPrompt } from "./prompts";
 import { basePrompt as nodeBasePrompt } from "./defaults/node";
 import { basePrompt as reactBasePrompt } from "./defaults/react";
 import { BASE_PROMPT } from "./prompts";
+
 import fs from "fs";
 const app = express();
+app.use(cors());
 app.use(express.json());
+
+
+
 
 app.post("/template", async (req, res) => {
   const prompt = req.body.prompt;

@@ -20,6 +20,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
+const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const openai_1 = __importDefault(require("openai"));
 const prompts_1 = require("./prompts");
@@ -27,6 +28,7 @@ const node_1 = require("./defaults/node");
 const react_1 = require("./defaults/react");
 const prompts_2 = require("./prompts");
 const app = (0, express_1.default)();
+app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post("/template", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, e_1, _b, _c;
